@@ -18,3 +18,12 @@ Navigate in the root folder of this package. Then execute the following command:
 pip install easyshap[plots,test,test-tf]
 ```
 Any additional dependencies in the square brackets are optional.
+
+### Google colab
+
+```bash
+pat = "<GITHUB_PERSONAL_ACCESS_TOKEN>"
+!git clone --branch feature/eshap-compare https://{pat}@github.com/CloseChoice/easyshap.git
+pip install /content/easyshap[plots,test,test-tf]
+```
+   
