@@ -44,7 +44,7 @@ def test_eshap_compare_multiple_output():
         },
     )
     result = eshap_compare(train_images, model, model, explainer="deep")
-    assert result.sum().values == np.array(0.0)
+    assert result.get("diff").sum().values == np.array(0.0)
 
 
 def test_eshap_compare_single_output():
@@ -84,7 +84,7 @@ def test_eshap_compare_single_output():
         },
     )
     result = eshap_compare(train_images, model, model, explainer="deep")
-    assert result.dims == ("observations", "pixel_x", "pixel_y", "rgb")
+    assert dict(result.dims) == {"observations": 10, "pixel_x": 32, "pixel_y": 32, "rgb": 3}
     expected_coords = {
         "pixel_x": np.arange(32),
         "pixel_y": np.arange(32),
@@ -95,7 +95,7 @@ def test_eshap_compare_single_output():
             dims=("observations", "pixel_x", "pixel_y", "rgb"), coords=expected_coords
         ).coords
     )
-    assert result.sum().values == np.array(0.0)
+    assert result.get("diff").sum().values == np.array(0.0)
 
 
 def test_eshap_compare_pandas_input():
@@ -104,7 +104,7 @@ def test_eshap_compare_pandas_input():
     rfc = RandomForestClassifier(max_depth=2, n_estimators=2).fit(X, y)
 
     result = eshap_compare(X, dtc, rfc)
-    assert result.dims == ("output", "dim_0", "dim_1")
+    assert dict(result.dims) == {"output": 2, "dim_0": 100, "dim_1": 12}
     expected_coords = {"dim_0": X.index, "dim_1": X.columns, "output": [0, 1]}
     assert result.coords.equals(
         xr.DataArray(dims=("output", "dim_0", "dim_1"), coords=expected_coords).coords
