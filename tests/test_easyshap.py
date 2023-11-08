@@ -1,5 +1,6 @@
 import numpy as np
-from easyshap import eshap_compare
+import pandas as pd
+from easyshap import eshap_compare, eshap_compare_inputs
 import shap
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -109,3 +110,19 @@ def test_eshap_compare_pandas_input():
     assert result.coords.equals(
         xr.DataArray(dims=("output", "dim_0", "dim_1"), coords=expected_coords).coords
     )
+
+def test_eshap_inputs_compare_pandas_input():
+    X1, y = shap.datasets.adult(n_points=100)
+    X2 = pd.concat([X1, pd.DataFrame(np.random.randint(0, 10, size=(len(X1), 3)),
+                                     columns=[f"dummycol_{i}" for i in range(3)],
+                                     index=X1.index)],
+                   axis=1,
+                   )
+    dtc = DecisionTreeClassifier(max_depth=2).fit(X1, y)
+    rfc = RandomForestClassifier(max_depth=2, n_estimators=2).fit(X2, y)
+
+    result = eshap_compare_inputs(X1, X2, dtc, rfc, explainer="tree")
+    # just check that the dummy columns are set correctly
+    assert result.get("diff").sel(dim_1=["dummycol_0", "dummycol_1", "dummycol_2"]).isnull().all() == np.array(True)
+    assert result.get("model1").sel(dim_1=["dummycol_0", "dummycol_1", "dummycol_2"]).isnull().all() == np.array(True)
+    assert result.get("model2").sel(dim_1=["dummycol_0", "dummycol_1", "dummycol_2"]).isnull().any() == np.array(False)
